@@ -1,5 +1,21 @@
 version: '3.8'
 services:
+  postgres:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=airbyte
+      - POSTGRES_PASSWORD=airbyte
+      - POSTGRES_DB=airbyte
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airbyte"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   clickhouse:
     image: clickhouse/clickhouse-server:latest
     ports:
@@ -23,11 +39,17 @@ services:
       - "8000:8000"
     environment:
       - AIRBYTE_VERSION=build-b0527c915a-21842-master
-      - DATABASE_URL=jdbc:clickhouse://clickhouse:9000/default?user=default&password=password
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/airbyte
+      - DATABASE_USER=airbyte
+      - DATABASE_PASSWORD=airbyte
+      - WORKSPACE_ROOT=/airbyte/workspace
+    volumes:
+      - airbyte_workspace:/airbyte/workspace
     depends_on:
+      postgres:
+        condition: service_healthy
       clickhouse:
         condition: service_healthy
-
 
   airbyte-webapp:
     image: airbyte/webapp:build-b0527c915a-21842-master
@@ -44,11 +66,14 @@ services:
       - "3000:3000"
     volumes:
       - ./dagster:/opt/dagster/app
+      - ./dbt:/usr/app/dbt
     environment:
       - DAGSTER_HOME=/opt/dagster/app
       - AIRBYTE_PASSWORD=password
       - DAGSTER_DBT_PARSE_PROJECT_ON_LOAD=1
     depends_on:
+      postgres:
+        condition: service_healthy
       clickhouse:
         condition: service_healthy
       airbyte-server:
@@ -70,3 +95,5 @@ services:
 
 volumes:
   clickhouse_data:
+  postgres_data:
+  airbyte_workspace:

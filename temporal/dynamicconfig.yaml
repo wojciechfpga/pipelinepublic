@@ -1,0 +1,7 @@
+# Example dynamic configuration for Temporal
+frontend.enableClientVersionCheck:
+  - value: true
+    constraints: {}
+persistence:
+  - numHistoryShards: 100
+    constraints: {}
