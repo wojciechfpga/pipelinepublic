@@ -3,18 +3,19 @@ services:
   clickhouse:
     image: clickhouse/clickhouse-server:latest
     ports:
-      - "8123:8123"  # HTTP interface
-      - "9000:9000"  # Native client
+      - "8123:8123"
+      - "9000:9000"
     volumes:
       - clickhouse_data:/var/lib/clickhouse
+      - ./clickhouse_config_override.xml:/etc/clickhouse-server/config.d/override.xml
     environment:
       - CLICKHOUSE_USER=default
       - CLICKHOUSE_PASSWORD=password
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8123"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/localhost/9000'"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
   airbyte-server:
     image: airbyte/server:build-b0527c915a-21842-master
@@ -22,13 +23,11 @@ services:
       - "8000:8000"
     environment:
       - AIRBYTE_VERSION=build-b0527c915a-21842-master
-      - DATABASE_HOST=clickhouse
-      - DATABASE_PORT=9000
-      - DATABASE_USER=default
-      - DATABASE_PASSWORD=password
+      - DATABASE_URL=jdbc:clickhouse://clickhouse:9000/default?user=default&password=password
     depends_on:
       clickhouse:
         condition: service_healthy
+
 
   airbyte-webapp:
     image: airbyte/webapp:build-b0527c915a-21842-master

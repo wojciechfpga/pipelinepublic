@@ -8,6 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy Dagster code
 COPY pipeline.py .
+COPY pyproject.toml .
 
 # Set environment variables
 ENV DAGSTER_HOME=/opt/dagster/app
@@ -15,5 +16,5 @@ ENV DAGSTER_HOME=/opt/dagster/app
 # Expose Dagster port
 EXPOSE 3000
 
-# Run Dagster
-CMD ["dagster", "dev", "-h", "0.0.0.0", "-p", "3000"]
+# Run Dagster with explicit file
+CMD ["dagster", "dev", "-h", "0.0.0.0", "-p", "3000", "-f", "pipeline.py"]
