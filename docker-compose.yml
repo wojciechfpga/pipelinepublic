@@ -1,0 +1,73 @@
+version: '3.8'
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    ports:
+      - "8123:8123"  # HTTP interface
+      - "9000:9000"  # Native client
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    environment:
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=password
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  airbyte-server:
+    image: airbyte/server:build-b0527c915a-21842-master
+    ports:
+      - "8000:8000"
+    environment:
+      - AIRBYTE_VERSION=build-b0527c915a-21842-master
+      - DATABASE_HOST=clickhouse
+      - DATABASE_PORT=9000
+      - DATABASE_USER=default
+      - DATABASE_PASSWORD=password
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+
+  airbyte-webapp:
+    image: airbyte/webapp:build-b0527c915a-21842-master
+    ports:
+      - "8001:80"
+    depends_on:
+      - airbyte-server
+
+  dagster:
+    build:
+      context: ./dagster
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./dagster:/opt/dagster/app
+    environment:
+      - DAGSTER_HOME=/opt/dagster/app
+      - AIRBYTE_PASSWORD=password
+      - DAGSTER_DBT_PARSE_PROJECT_ON_LOAD=1
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      airbyte-server:
+        condition: service_started
+
+  dbt:
+    build:
+      context: ./dbt
+      dockerfile: Dockerfile
+    volumes:
+      - ./dbt:/usr/app/dbt
+    environment:
+      - CLICKHOUSE_HOST=clickhouse
+      - CLICKHOUSE_PORT=9000
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=password
+    depends_on:
+      - clickhouse
+
+volumes:
+  clickhouse_data:

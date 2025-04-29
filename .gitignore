@@ -1,0 +1,75 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+pip-wheel-metadata/
+build/
+dist/
+*.egg
+
+# Virtual environments
+venv/
+.env
+env/
+*.env
+
+# IDE and editors
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Docker
+*.log
+docker-compose.override.yml
+*.dockerignore
+
+# Airbyte
+airbyte/.airbyte/
+airbyte/logs/
+airbyte/tmp/
+airbyte/*.json  # Exclude sensitive Airbyte configs, e.g., credentials
+!airbyte/*.py  # Keep Python scripts if used for automation
+
+# Dagster
+dagster/.dagster/
+dagster/dagster_home/
+dagster/*.log
+dagster/target/  # If any build artifacts
+
+# dbt
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+dbt/run/
+dbt/*.log
+dbt/.dbt/
+
+# ClickHouse
+clickhouse_data/  # Persistent volume data
+*.sql.bak
+
+# Sensitive files
+*.key
+*.pem
+*.crt
+*.cert
+secrets/
+credentials.json
+service_account.json
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+.DS_Store
+
+# Miscellaneous
+*.zip
+*.tar.gz
+*.tgz
+node_modules/

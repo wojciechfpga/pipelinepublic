@@ -1,0 +1,12 @@
+default:
+  target: dev
+  outputs:
+    dev:
+      type: clickhouse
+      driver: native
+      host: clickhouse
+      port: 9000
+      user: default
+      password: password
+      database: default
+      schema: analytics
